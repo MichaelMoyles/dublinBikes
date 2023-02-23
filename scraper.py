@@ -22,12 +22,10 @@ def write_to_db(text):
     return
 
 def main():
-    while True:
-        try:
-            write_to_db(r.text)
-            time.sleep(5*60)
-        except:
-            print(traceback.format_exc())
+    try:
+        write_to_db(r.text)
+    except:
+        print(traceback.format_exc())
     return
 
 main()
