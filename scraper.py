@@ -1,12 +1,12 @@
 import mydb
+import dbinfo
 import requests
 import traceback
 import datetime
-import time
 import json
 
 now = datetime.datetime.now()
-r = requests.get(mydb.STATIONS_URI, params={"apiKey": mydb.JCKEY, "contract": mydb.NAME})
+r = requests.get(dbinfo.STATIONS_URI, params={"apiKey": dbinfo.JCKEY, "contract": dbinfo.NAME})
 
 # function to update database
 def write_to_db(text):
