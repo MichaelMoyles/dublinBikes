@@ -48,50 +48,19 @@ with engine.begin() as connection:
     except Exception as e:
         print(e)
 
-    createCurrentWeatherTable = """CREATE TABLE IF NOT EXISTS current_weather (
-                    lat FLOAT NOT NULL,
-                    lon FLOAT NOT NULL,
-                    timezone VARCHAR(256),
-                    timezone_offset INT,
-                    dt BIGINT,
-                    sunrise BIGINT,
-                    sunset BIGINT,
-                    temp FLOAT,
-                    feels_like FLOAT,
-                    pressure INT,
-                    humidity INT,
-                    dew_point FLOAT,
-                    uvi FLOAT,
-                    clouds INT,
-                    visibility INT,
-                    wind_speed FLOAT,
-                    wind_deg INT,
-                    wind_gust FLOAT,
-                    main_weather VARCHAR(256),
-                    weather_disc VARCHAR(256),
-                    timestamp BIGINT
-                    )
-                    """
-    
-    try:
-        connection.execute(text(createCurrentWeatherTable))
-    except Exception as e:
-        print(e)
-
 def main():
     try:
         now = datetime.now()
         timestamp = datetime.timestamp(now)
-        r1 = requests.get(dbinfo.STATIONS_URI, params={"apiKey":dbinfo.JCKEY, "contract":dbinfo.NAME})
-        r2 = requests.get(dbinfo.WEATHER_URI, params={"lat":dbinfo.LAT, "lon":dbinfo.LON, "exclude":dbinfo.EXCLUDE, "appid":dbinfo.APP_ID})
-        api_to_db(r1.text, r2.text, timestamp)
+        r = requests.get(dbinfo.STATIONS_URI, params={"apiKey":dbinfo.JCKEY, "contract":dbinfo.NAME})
+        api_to_db(r.text, timestamp)
     except:
         print(traceback.format_exc())
         if connection is None:
             return
 
-def api_to_db(bike_apiData, weather_apiData, timestamp):
-    stations = json.loads(bike_apiData)
+def api_to_db(apiData, timestamp):
+    stations = json.loads(apiData)
     with engine.begin() as connection:
         for station in stations:
             static_vals = (
@@ -126,77 +95,6 @@ def api_to_db(bike_apiData, weather_apiData, timestamp):
                 connection.execute(text(dynamic_insert_row))
             except Exception as e:
                 print(e)
-
-        w = json.loads(weather_apiData)
-        weather_info = (
-            w.get('lat'),
-            w.get('lon'),
-            w.get('timezone'),
-            w.get('timezone_offset'),
-            w.get('current').get('dt'), 
-            w.get('current').get('sunrise'), 
-            w.get('current').get('sunset'),
-            w.get('current').get('temp'),
-            w.get('current').get('feels_like'),
-            w.get('current').get('pressure'), 
-            w.get('current').get('humidity'), 
-            w.get('current').get('dew_point'), 
-            w.get('current').get('uvi'), 
-            w.get('current').get('clouds'), 
-            w.get('current').get('visibility'), 
-            w.get('current').get('wind_speed'), 
-            w.get('current').get('wind_deg'), 
-            w.get('current').get('wind_gust'), 
-            w.get('current').get('weather.main'),
-            w.get('current').get('weather.description'), 
-            timestamp
-            )
-            
-        try:
-            cw_insert_row = """INSERT INTO current_weather VALUES("%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s")"""
-            cw_insert_row = cw_insert_row % weather_info
-            connection.execute(text(cw_insert_row))
-
-        except Exception as e:
-            print(e)
-
-    return
-
-# def weather_api_to_db(apiData, timestamp):
-#     w = json.loads(apiData)
-#     with engine.begin() as connection:
-#          weather_info = (
-#                 w.get('lat'),
-#                 w.get('lon'),
-#                 w.get('timezone'),
-#                 w.get('timezone_offset'),
-#                 w.get('current').get('dt'), 
-#                 w.get('current').get('sunrise'), 
-#                 w.get('current').get('sunset'),
-#                 w.get('current').get('temp'),
-#                 w.get('current').get('feels_like'),
-#                 w.get('current').get('pressure'), 
-#                 w.get('current').get('humidity'), 
-#                 w.get('current').get('dew_point'), 
-#                 w.get('current').get('uvi'), 
-#                 w.get('current').get('clouds'), 
-#                 w.get('current').get('visibility'), 
-#                 w.get('current').get('wind_speed'), 
-#                 w.get('current').get('wind_deg'), 
-#                 w.get('current').get('wind_gust'), 
-#                 w.get('current').get('weather.main'),
-#                 w.get('current').get('weather.description'), 
-#                 timestamp
-#                 )
-         
-#     try:
-#         cw_insert_row = """INSERT INTO current_weather VALUES("%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s", "%s")"""
-#         cw_insert_row = cw_insert_row % weather_info
-#         connection.execute(text(cw_insert_row))
-
-#     except Exception as e:
-#         print(e)
-
-#     return
+        return
 
 main()
